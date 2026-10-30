@@ -1,0 +1,49 @@
+Package: ballast
+Title: Stress-Test a Pre-Specified Mixed Model for Repeated Measures
+Version: 0.6.1
+Authors@R: c(
+    person("Adam", "Sullivan", email = "asullivan@capricor.com",
+           role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0002-9429-3611")),
+    person("Nathan", "Hogan", role = "ctb",
+           comment = "validation of the SAS reference results"),
+    person("Capricor Therapeutics", role = "fnd"))
+Description: Refits one pre-specified mixed model for repeated measures (MMRM)
+    under families of data and analytic perturbations (covariance structure,
+    degrees-of-freedom method and variance estimator, covariate set, analysis
+    population, alternative analysis data sets, leave-one-out deletions, crossed
+    specification grids, re-randomisation tests, delta-adjusted and
+    reference-based multiple imputation, and alternative estimators) and judges
+    every refit against the pre-specified estimate, confidence interval and
+    p-value. Classifies the result as robust, sensitive or fragile, with a
+    separate flag for marginal significance, and estimates by simulation the
+    probability that a planned design gives a significant and robust result.
+    Fitting uses 'mmrm' (Sabanes Bove et al., 2024,
+    <https://openpharma.github.io/mmrm/>) with 'SAS' 'PROC MIXED' conventions
+    for the least-squares-mean contrast,
+    Kenward-Roger adjustment and the corrected Akaike criterion. Reference-based
+    multiple imputation follows Carpenter, Roger and Kenward (2013)
+    <doi:10.1080/10543406.2013.834911> and was checked against 'rbmi'
+    (Gower-Page, Noci and Wolbers, 2022) <doi:10.21105/joss.04251>.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Language: en-GB
+Depends: R (>= 4.1.0)
+Imports: mmrm (>= 0.3.0), stats, utils, parallel
+Suggests: ggplot2, emmeans, nlme, MASS, flextable, officer, plotly,
+        htmlwidgets, htmltools, jsonlite, testthat (>= 3.0.0), knitr,
+        rmarkdown
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://github.com/Sullivanstatistics/ballast
+BugReports: https://github.com/Sullivanstatistics/ballast/issues
+Config/roxygen2/version: 8.0.0
+NeedsCompilation: no
+Packaged: 2026-10-19 17:37:26 UTC; asullivan
+Author: Adam Sullivan [aut, cre, cph] (ORCID:
+    <https://orcid.org/0000-0002-9429-3611>),
+  Nathan Hogan [ctb] (validation of the SAS reference results),
+  Capricor Therapeutics [fnd]
+Maintainer: Adam Sullivan <asullivan@capricor.com>
+Repository: CRAN
+Date/Publication: 2026-10-30 12:30:02 UTC

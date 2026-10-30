@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Missing data: reference-based and delta-adjusted imputation</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Missing data: reference-based and
+delta-adjusted imputation</h1>
+
+
+
+<p>An MMRM assumes the missing responses are missing at random. The two
+standard ways to test that assumption are reference-based imputation,
+which replaces the assumption with a clinically stated one, and delta
+adjustment, which asks how much worse the imputed values would have to
+be before the conclusion changes.</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(ballast)</span>
+<span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>dat <span class="ot">&lt;-</span> mmrm<span class="sc">::</span>fev_data[mmrm<span class="sc">::</span>fev_data<span class="sc">$</span>USUBJID <span class="sc">%in%</span> <span class="fu">paste0</span>(<span class="st">&quot;PT&quot;</span>, <span class="dv">1</span><span class="sc">:</span><span class="dv">100</span>), ]</span>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>spec <span class="ot">&lt;-</span> <span class="fu">stress_spec</span>(dat, <span class="st">&quot;FEV1&quot;</span>, <span class="st">&quot;USUBJID&quot;</span>, <span class="st">&quot;AVISIT&quot;</span>, <span class="st">&quot;ARMCD&quot;</span>, <span class="st">&quot;PBO&quot;</span>, <span class="at">covariates =</span> <span class="sc">~</span> FEV1_BL,</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>                    <span class="at">covariance =</span> <span class="st">&quot;us&quot;</span>, <span class="at">method =</span> <span class="st">&quot;Satterthwaite&quot;</span>, <span class="at">vcov =</span> <span class="st">&quot;Asymptotic&quot;</span>)</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a><span class="fu">stress_fit</span>(spec)[, <span class="fu">c</span>(<span class="st">&quot;estimate&quot;</span>, <span class="st">&quot;stderr&quot;</span>, <span class="st">&quot;p&quot;</span>, <span class="st">&quot;n_subj&quot;</span>)]</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a><span class="co">#&gt;   estimate  stderr          p n_subj</span></span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a><span class="co">#&gt; 1 4.704172 2.15044 0.03194726     99</span></span></code></pre></div>
+<div id="reference-based-imputation" class="section level2">
+<h2>Reference-based imputation</h2>
+<p><code>stress_reference()</code> fits a multivariate-normal imputation
+model (treatment by visit, the subject-level covariates, unstructured
+covariance) and draws the missing values under four assumptions: missing
+at random, jump to reference, copy reference, and copy increments in
+reference. Parameter uncertainty comes from bootstrap refits of the
+imputation model, one per imputation. The vignette uses few imputations;
+use 25 or more in practice.</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>ref <span class="ot">&lt;-</span> <span class="fu">stress_reference</span>(spec, <span class="at">m =</span> <span class="dv">5</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>ref[, <span class="fu">c</span>(<span class="st">&quot;label&quot;</span>, <span class="st">&quot;estimate&quot;</span>, <span class="st">&quot;stderr&quot;</span>, <span class="st">&quot;p&quot;</span>, <span class="st">&quot;note&quot;</span>)]</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a><span class="co">#&gt;   label estimate   stderr          p</span></span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a><span class="co">#&gt; 1   MAR 4.589312 2.132649 0.03504009</span></span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a><span class="co">#&gt; 2   J2R 3.642409 1.933720 0.06151019</span></span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a><span class="co">#&gt; 3    CR 3.742395 1.951151 0.05660463</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a><span class="co">#&gt; 4   CIR 4.158507 2.121805 0.05546734</span></span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="co">#&gt;                                                                                                      note</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="co">#&gt; 1 reference PBO, shift 0 on TRT, common covariance, seed 1; m = 5 of 5 converged; MC SE of estimate 0.431</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="co">#&gt; 2 reference PBO, shift 0 on TRT, common covariance, seed 1; m = 5 of 5 converged; MC SE of estimate 0.317</span></span>
+<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="co">#&gt; 3 reference PBO, shift 0 on TRT, common covariance, seed 1; m = 5 of 5 converged; MC SE of estimate 0.303</span></span>
+<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="co">#&gt; 4 reference PBO, shift 0 on TRT, common covariance, seed 1; m = 5 of 5 converged; MC SE of estimate 0.458</span></span></code></pre></div>
+<p>The package’s implementation was checked against rbmi on the
+antidepressant data that rbmi ships: with the same imputation model, the
+same number of bootstrap draws and the same analysis model applied to
+both engines’ completed data sets, all four assumptions agree within
+Monte Carlo error. One caution for rbmi users:
+<code>rbmi::set_vars()</code> adds only the main effects of group and
+visit, so the treatment-by-visit interaction has to be named in its
+<code>covariates</code>.</p>
+</div>
+<div id="delta-adjustment" class="section level2">
+<h2>Delta adjustment</h2>
+<p><code>stress_tipping()</code> imputes by fully conditional
+specification (the regression method of SAS PROC MI), adds a shift to
+the active arm’s imputed values, refits and pools.
+<code>delta = 0</code> is the missing-at-random multiple-imputation
+analysis and is counted as an alternative; the other deltas are
+searches. <code>tipping_point()</code> interpolates the crossing and
+<code>plot_pcurve()</code> draws the curve.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>tp <span class="ot">&lt;-</span> <span class="fu">stress_tipping</span>(spec, <span class="at">deltas =</span> <span class="fu">c</span>(<span class="dv">0</span>, <span class="sc">-</span><span class="dv">5</span>, <span class="sc">-</span><span class="dv">10</span>, <span class="sc">-</span><span class="dv">15</span>), <span class="at">m =</span> <span class="dv">5</span>, <span class="at">seed =</span> <span class="dv">1</span>)</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>tp[, <span class="fu">c</span>(<span class="st">&quot;label&quot;</span>, <span class="st">&quot;estimate&quot;</span>, <span class="st">&quot;p&quot;</span>, <span class="st">&quot;kind&quot;</span>)]</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt;       label estimate         p        kind</span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a><span class="co">#&gt; 1   delta 0 4.309511 0.1307718 alternative</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="co">#&gt; 2  delta -5 3.129395 0.2661672      search</span></span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; 3 delta -10 2.029560 0.4698498      search</span></span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a><span class="co">#&gt; 4 delta -15 1.000075 0.7260519      search</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a><span class="fu">tipping_point</span>(tp)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="co">#&gt;                                                                family n</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; delta-adjusted multiple imputation delta-adjusted multiple imputation 4</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt;                                    param_min param_max     p_min     p_max</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; delta-adjusted multiple imputation       -15         0 0.1307718 0.7260519</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt;                                    crossing direction</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; delta-adjusted multiple imputation       NA      &lt;NA&gt;</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="fu">plot_pcurve</span>(tp, <span class="at">xlab =</span> <span class="st">&quot;Shift applied to imputed active-arm values&quot;</span>)</span></code></pre></div>
+<p><img role="img" src="data:image/png;base64,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" /><!-- --></p>
+</div>
+<div id="intercurrent-events" class="section level2">
+<h2>Intercurrent events</h2>
+<p>When an intercurrent event is the reason for the missing data,
+<code>stress_estimand()</code> derives the analysis data sets implied by
+each handling strategy (treatment policy, hypothetical, while on
+treatment, composite) and refits each. A hypothetical strategy sets the
+post-event responses to missing; the reference-based family can then be
+run on that derived data set with
+<code>spec_update(spec, data = ...)</code>.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
