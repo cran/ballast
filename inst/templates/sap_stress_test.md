@@ -29,11 +29,13 @@ with the treatment contrast [active] minus [reference] at [visit] formed from le
 two families (the same estimate, standard error, degrees of freedom and number of observations) is counted once.
 Tipping-point grids and the deletion search are searches and are not counted; the delta-zero multiple-imputation analysis
 is counted. Deletions are counted but summarised separately from alternative analyses. Refits that do not converge are
-reported and not counted.
+reported and not counted. Refits the plan marks as diagnostic (in the standard stress test, the pre-specified model on
+complete cases) are fitted, drawn and tabulated with their status but are not counted and do not enter the
+classification.
 
-**Classification.** The result will be classed *fragile* if any counted alternative reverses the direction of the
-estimate or lands outside the pre-specified 95% confidence interval; otherwise *sensitive* if any counted alternative
-crosses the significance level; otherwise *robust*. The pre-specified p-value will be flagged *marginal* if it lies
+**Classification.** The result will be classed *fragile* if any counted refit (an alternative analysis or a deletion)
+lands outside the pre-specified 95% confidence interval (the margin of error); otherwise *sensitive* if any counted
+refit crosses the significance level; otherwise *robust*. The pre-specified p-value will be flagged *marginal* if it lies
 between half and twice the significance level. The classification will be reported over all counted refits and over the
 sensitivity analyses alone (those that keep the estimand); alternative data sets, populations, other visits and
 intercurrent-event strategies are supplementary analyses and will be labelled as such.

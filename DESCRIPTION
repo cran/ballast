@@ -1,6 +1,6 @@
 Package: ballast
 Title: Stress-Test a Pre-Specified Mixed Model for Repeated Measures
-Version: 0.6.1
+Version: 0.7.4
 Authors@R: c(
     person("Adam", "Sullivan", email = "asullivan@capricor.com",
            role = c("aut", "cre", "cph"),
@@ -35,15 +35,16 @@ Suggests: ggplot2, emmeans, nlme, MASS, flextable, officer, plotly,
         rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
-URL: https://github.com/Sullivanstatistics/ballast
+URL: https://github.com/Sullivanstatistics/ballast,
+        https://sullivanstatistics.github.io/ballast/
 BugReports: https://github.com/Sullivanstatistics/ballast/issues
 Config/roxygen2/version: 8.0.0
 NeedsCompilation: no
-Packaged: 2026-10-19 17:37:26 UTC; asullivan
+Packaged: 2026-10-30 16:50:42 UTC; asullivan
 Author: Adam Sullivan [aut, cre, cph] (ORCID:
     <https://orcid.org/0000-0002-9429-3611>),
   Nathan Hogan [ctb] (validation of the SAS reference results),
   Capricor Therapeutics [fnd]
 Maintainer: Adam Sullivan <asullivan@capricor.com>
 Repository: CRAN
-Date/Publication: 2026-10-30 12:30:02 UTC
+Date/Publication: 2026-10-31 08:20:41 UTC

@@ -1,11 +1,20 @@
 # ballast <img src="man/figures/logo.png" align="right" height="139" alt="ballast hex sticker" />
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23427834.svg)](https://doi.org/10.5281/zenodo.23427834)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23427833.svg)](https://doi.org/10.5281/zenodo.23427833)
 [![R-CMD-check](https://github.com/Sullivanstatistics/ballast/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/Sullivanstatistics/ballast/actions/workflows/R-CMD-check.yaml)
+[![CRAN status](https://www.r-pkg.org/badges/version/ballast)](https://CRAN.R-project.org/package=ballast)
 
 ballast keeps a result steady under load. It stress-tests a pre-specified mixed model for repeated measures (MMRM):
 the model is refitted under families of data and analytic perturbations, and every refit is judged against the
 pre-specified estimate, confidence interval and p-value.
+
+## Installation
+
+```r
+install.packages("ballast")                                # released version, from CRAN
+# install.packages("remotes")
+remotes::install_github("Sullivanstatistics/ballast")     # development version
+```
 
 ```r
 library(ballast)
@@ -32,6 +41,7 @@ summary(cen)          # per-family table: counted, significant, crossed, outside
 stress_verdict(cen)   # robust / sensitive / fragile, with a marginal flag
 plot(cen)             # one row per family on the percent-of-base axis
 plot_swarm(cen)       # bubble swarm of distinct estimates against the no-difference line, deletions beneath
+plot_forest(cen)      # forest of the filed analysis and the supplementary rows (alternative data sets, populations)
 plot_pstrip(cen)      # leave-one-out p-values on a log axis, the base as a diamond
 tp <- stress_tipping(spec, deltas = seq(0, -10, -2))
 tipping_point(tp)     # interpolated crossing of alpha
@@ -41,6 +51,7 @@ plot_pcurve(tp)       # p-value curve over the shift, anchor and crossing marked
 # the recommended set, pre-specified, run and reported in one go
 plan <- standard_plan(spec, site = "SITE", strata = "SITE", baseline = "BASE", deltas = seq(0, -10, -2))
 res <- run_plan(plan, cores = 6)
+plot_swarm(list("FEV1 at visit 4" = res))   # several endpoint rows: one panel each, every refit against the filed interval
 stress_report(res, dir = "stress")    # Markdown + figures
 stress_tables(res, dir = "stress")    # CSV, Word, RTF
 stress_html(res, "stress/report.html") # interactive
@@ -75,9 +86,9 @@ after unblinding has a pre-registered comparison.
 
 ## Definitions
 
-- **Fragile**: some counted alternative reverses the direction of the estimate or lands outside the pre-specified
+- **Fragile**: some counted alternative lands outside the pre-specified
   95% confidence interval.
-- **Sensitive**: some counted alternative crosses alpha while keeping the direction and staying inside the interval.
+- **Sensitive**: some counted alternative crosses alpha, but every alternative stays inside the interval.
 - **Robust**: no counted alternative crosses alpha.
 - **Marginal** (separate flag): the pre-specified p-value lies near alpha.
 
@@ -105,7 +116,7 @@ method, `MNAR ADJUST` applied at every draw) and PROC MIANALYZE.
 
 ## Status and validation
 
-Version 0.6.1. The engine is a generic rewrite of a program-by-program validated R port of a SAS robustness package and
+Version 0.7.4. The engine is a generic rewrite of a program-by-program validated R port of a SAS robustness package and
 reproduces that package cell by cell (seven validation gates, about 1,250 cells including the full submitted census, deterministic quantities to 1e-6, Monte
 Carlo quantities within Monte Carlo error); reference-based imputation agrees with rbmi on its public antidepressant
 data. See the validation vignette. `R CMD check --as-cran` runs on Windows, macOS and Linux on every push.
@@ -119,5 +130,5 @@ SAS reference analysis on about 1,250 cells and against rbmi (see the validation
 
 ## Citation
 
-Sullivan AJ (2026). ballast: Stress-Test a Pre-Specified Mixed Model for Repeated Measures. R package version 0.6.1.
-doi:10.5281/zenodo.23427834. `citation("ballast")` gives the BibTeX entry.
+Sullivan AJ (2026). ballast: Stress-Test a Pre-Specified Mixed Model for Repeated Measures. R package version 0.7.4.
+doi:10.5281/zenodo.23427833. `citation("ballast")` gives the BibTeX entry.

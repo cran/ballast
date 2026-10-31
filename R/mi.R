@@ -27,7 +27,7 @@ mi_design <- function(df, vars) if (length(vars)) stats::model.matrix(stats::ref
 
 # w: wide data frame; vars: imputation variables in order (covariates first); adjust: NULL or list(vars, shift, rows).
 mi_fcs_reg <- function(w, vars, nimp, seed, nbiter = 10, adjust = NULL, shift_every = TRUE) {
-  old_rng <- rng_state(); on.exit(rng_restore(old_rng), add = TRUE); set.seed(seed)
+  old_rng <- rng_state(); on.exit(rng_restore(old_rng), add = TRUE); seed_rng(seed)
   imputed <- vars[vapply(vars, function(v) anyNA(w[[v]]), TRUE)]
   misl <- lapply(stats::setNames(imputed, imputed), function(v) is.na(w[[v]]))
   shift <- function(cur, tg) {
@@ -118,7 +118,9 @@ mi_row <- function(spec, fits, label, family, kind, role, note_prefix, m, n_subj
 #' @param deltas Shifts added to the imputed values of the active arm, in
 #'   response units.
 #' @param m Number of imputations.
-#' @param seed Random seed (the same seed is used for every delta).
+#' @param seed Random seed (the same seed is used for every delta). The `m`
+#'   imputations are drawn in turn from one stream started at `seed`, so
+#'   different seeds give unrelated imputations.
 #' @param arm Treatment level receiving the shift; defaults to the active arm.
 #' @param shift_visits Visit levels whose imputed values are shifted; `NULL`
 #'   shifts every visit.
